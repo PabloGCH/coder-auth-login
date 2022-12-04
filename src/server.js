@@ -30,7 +30,7 @@ app.use(session({
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
-		maxAge: 10000
+		maxAge: 1000 * 60 * 10 // 1 segundo * 60 * 10 = 10 minutos
 	}
 }))
 app.use(express.json());
@@ -80,6 +80,36 @@ app.post("/login", (req, res) => {
 	}
 })
 
+app.post("/newMessage", (req,res) => {
+	if(req.session.user == undefined){
+		res.send({success: false, message: "not_logged"})
+	} else {
+		messageManager.save(req.body).then(() => {
+			messageManager.getAll().then(messages => {
+				io.sockets.emit("messages", {messages: messages})
+				res.send({success: true})
+			})
+		})
+	}
+});
+
+app.post("/newProduct", (req,res) => {
+	if(req.session.user == undefined){
+		res.send({success: false, message: "not_logged"})
+	} else {
+		console.log("logged")
+		let product = req.body;
+		Object.assign(product, {price: parseInt(product.price)});
+		container.save(product).then(() => {
+			container.getAll().then(products => {
+				io.sockets.emit("products", {products: products})
+				res.send({success: true})
+			})
+		})
+	}
+
+});
+
 
 
 
@@ -90,22 +120,6 @@ io.on("connection", (socket) => {
 	})
 	messageManager.getAll().then(messages => {
 		socket.emit("messages", {messages: messages})
-	})
-	socket.on("newProduct", data => {
-		let product = data;
-		Object.assign(product, {price: parseInt(product.price)});
-		container.save(product).then(() => {
-			container.getAll().then(products => {
-				io.sockets.emit("products", {products: products})
-			})
-		})
-	})
-	socket.on("newMessage", data => {
-		messageManager.save(data).then(() => {
-			messageManager.getAll().then(messages => {
-				io.sockets.emit("messages", {messages: messages})
-			})
-		})
 	})
 })
 

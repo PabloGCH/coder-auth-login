@@ -39,10 +39,26 @@ const productFormSubmit = () => {
 		price: inputs[1].value,
 		imgUrl: inputs[2].value
 	};
-	socket.emit("newProduct", newProduct)
+	fetch("/newProduct", {
+		method: "POST",
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(newProduct)
+	})
+	.then(async(res) => {
+		let data = await res.json();
+		if(data.success) {
+			window.location.replace("stock")
+		}
+		if(!data.success && data.message == "not_logged") {
+			window.location.replace("login")
+		}
+	})
+
+	/*
 	setTimeout(() => {
 		window.location.replace("stock")
 	}, 500)
+	*/
 }
 
 const chatSection = async(data, user) => {
@@ -64,7 +80,17 @@ const sendMessage = () => {
 		date: date.getDate().toString() + "/" + date.getMonth().toString() + "/" + date.getFullYear().toString() + " - " + date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString(),
 		message: message
 	}
-	socket.emit("newMessage", newMessage);
+	fetch("/newMessage", {
+		method: "POST",
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(newMessage)
+	})
+	.then(async(res) => {
+		let data = await res.json();
+		if(!data.success && data.message == "not_logged") {
+			window.location.replace("login")
+		}
+	})
 }
 
 //LOGIN EVENT
