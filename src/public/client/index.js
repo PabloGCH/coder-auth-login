@@ -1,7 +1,21 @@
 const socket = io();
 const content = document.getElementById("content");
 let currentUserEmail = "";
-//Check if login
+let username = "";
+
+const getCookie = (name) => {
+	let cookievalue;
+	document.cookie.split(';').every(el => {
+		let [key,value] = el.split('=');
+		if(key == name) {
+			cookievalue = value
+			return false;
+		}
+		return true;
+	})
+	return cookievalue;
+}
+username = getCookie("username");
 
 //HANDLEBARS HELPERS
 Handlebars.registerHelper("compareStrings", (a, b, options) => {
@@ -19,11 +33,12 @@ const productForm = async() => {
 	const response = await fetch("../templates/form.handlebars");
 	const result = await response.text();
 	const template = Handlebars.compile(result);
-	const html = template();
+	const html = template({loggedUser: username});
 	return html;
 }
 
 const productTable = async(data) => {
+	Object.assign(data, {loggedUser: username})
 	const response = await fetch("../templates/products.handlebars");
 	const result = await response.text();
 	const template = Handlebars.compile(result);
@@ -44,15 +59,15 @@ const productFormSubmit = () => {
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(newProduct)
 	})
-	.then(async(res) => {
-		let data = await res.json();
-		if(data.success) {
-			window.location.replace("stock")
-		}
-		if(!data.success && data.message == "not_logged") {
-			window.location.replace("login")
-		}
-	})
+		.then(async(res) => {
+			let data = await res.json();
+			if(data.success) {
+				window.location.replace("stock")
+			}
+			if(!data.success && data.message == "not_logged") {
+				window.location.replace("login")
+			}
+		})
 
 	/*
 	setTimeout(() => {
@@ -62,7 +77,7 @@ const productFormSubmit = () => {
 }
 
 const chatSection = async(data, user) => {
-	Object.assign(data, {user: user})
+	Object.assign(data, {user: user, loggedUser: username})
 	const response = await fetch("../templates/chat.handlebars");
 	const result = await response.text();
 	const template = Handlebars.compile(result);
@@ -85,12 +100,12 @@ const sendMessage = () => {
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(newMessage)
 	})
-	.then(async(res) => {
-		let data = await res.json();
-		if(!data.success && data.message == "not_logged") {
-			window.location.replace("login")
-		}
-	})
+		.then(async(res) => {
+			let data = await res.json();
+			if(!data.success && data.message == "not_logged") {
+				window.location.replace("login")
+			}
+		})
 }
 
 //LOGIN EVENT
@@ -106,9 +121,10 @@ const logSubmit = () => {
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(logData)
 	})
-	.then(async(res) => {
-		console.log(await res.json())
-	})
+		.then(async(res) => {
+			console.log(await res.json())
+			window.location.replace("stock")
+		})
 }
 
 
@@ -141,4 +157,12 @@ if(window.location.pathname == "/chat") {
 	})
 }
 
-
+const logOff = () => {
+	fetch("/logOff", {
+		method: "GET",
+		headers: {'Content-Type': 'application/json'},
+	}).then(async(res) => {
+		console.log(await res.json());
+		window.location.replace("stock")
+	})
+} 

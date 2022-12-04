@@ -44,6 +44,7 @@ app.get("/stock", (req, res) => {
 	if(req.session.user == undefined){
 		res.redirect("/login")
 	} else {
+		res.cookie("username", req.session.user.name)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
@@ -51,6 +52,8 @@ app.get("/form", (req, res) => {
 	if(req.session.user == undefined){
 		res.redirect("/login")
 	} else {
+
+		res.cookie("username", req.session.user.name)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
@@ -58,11 +61,17 @@ app.get("/chat", (req, res) => {
 	if(req.session.user == undefined){
 		res.redirect("/login")
 	} else {
+
+		res.cookie("username", req.session.user.name)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
 app.get("/login", (req,res) => {
-	res.sendFile("public/client/index.html", {root: __dirname})
+	if(req.session.user){
+		res.redirect("/stock")
+	} else {
+		res.sendFile("public/client/index.html", {root: __dirname})
+	}
 })
 
 app.post("/login", (req, res) => {
@@ -109,8 +118,14 @@ app.post("/newProduct", (req,res) => {
 	}
 
 });
+app.get("/userData", (req, res) => {
+	res.send(req.session.user.name)
+})
 
-
+app.get("/logOff", (req, res) => {
+	req.session.destroy();
+	res.send({message: "session closed"})
+})
 
 
 //WEBSOCKETS
