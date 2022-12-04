@@ -80,8 +80,8 @@ const logSubmit = () => {
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(logData)
 	})
-	.then((res) => {
-		console.log(res);
+	.then(async(res) => {
+		console.log(await res.json())
 	})
 }
 

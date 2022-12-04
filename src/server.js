@@ -14,13 +14,25 @@ const io = new IOServer(httpServer)
 const TEMPLATEFOLDER = path.join(__dirname, "public/templates");
 const container = new ProductDbManager("products.json");
 const messageManager = new MessageDbManager("message-history.json");
+//SESSION PERSISTENCE WITH MONGO
+const MongoStore = require("connect-mongo")
 //HANDLEBARS
 const HANDLEBARS = require("express-handlebars");
+const session = require("express-session");
 app.engine("handlebars", HANDLEBARS.engine())
 app.set("views", TEMPLATEFOLDER)
 app.set("view engine", "handlebars")
 //APP INIT CONF
 app.use(cookieParser());
+app.use(session({
+	store: MongoStore.create({mongoUrl: "mongodb+srv://pablo:coder@coder.bkt7yqu.mongodb.net/sessionsDb?retryWrites=true&w=majority"}),
+	secret: "dfvartg4wfqR3EFRQ3",
+	resave: false,
+	saveUninitialized: false,
+	cookie: {
+		maxAge: 10000
+	}
+}))
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -28,31 +40,46 @@ httpServer.listen(4000, ()=>{"server listening on port 4000"});
 
 
 
-
 app.get("/stock", (req, res) => {
-	if(!req.cookies.logToken){
+	if(req.session.user == undefined){
 		res.redirect("/login")
+	} else {
+		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
 app.get("/form", (req, res) => {
-	if(!req.cookies.logToken){
+	if(req.session.user == undefined){
 		res.redirect("/login")
+	} else {
+		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
 app.get("/chat", (req, res) => {
-	if(!req.cookies.logToken){
+	if(req.session.user == undefined){
 		res.redirect("/login")
+	} else {
+		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
-app.post("/login", (req, res) => {
-	console.log(req.body.name);
-	console.log(req.body.password);
-	res.cookie("logToken", "d54362jhaosdpub", {maxAge: 10000}).send("log cookie set")
-})
-
-app.get("/*", (req, res) => {
+app.get("/login", (req,res) => {
 	res.sendFile("public/client/index.html", {root: __dirname})
 })
+
+app.post("/login", (req, res) => {
+	const body = req.body;
+	if(req.session.user) {
+		res.send({message:"already logged"})
+	} else if(body.name && body.password) {
+		req.session.user = {
+			name: body.name,
+			password: body.password
+		}
+		res.send({message: "Session initialized"})
+	} else {
+		res.send({message: "Invalid user inputs"})
+	}
+})
+
 
 
 
