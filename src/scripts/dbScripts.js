@@ -9,7 +9,7 @@ class DbManager {
 		this.tableName = tableName;
 		switch(tableName) {
 			case "products":
-				this.database = knex(sqlconfig);
+				this.database = knex(sqliteconfig);
 				this.createTable();
 			break;
 			case "messages":

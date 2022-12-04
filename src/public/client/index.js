@@ -1,11 +1,20 @@
 const socket = io();
 const content = document.getElementById("content");
 let currentUserEmail = "";
+//Check if login
+
 //HANDLEBARS HELPERS
 Handlebars.registerHelper("compareStrings", (a, b, options) => {
 	return a == b ? options.fn(this) : options.inverse(this);
 })
 //FUNCTIONS
+const loginForm = async() => {
+	const response = await fetch("../templates/login.handlebars");
+	const result = await response.text();
+	const template = Handlebars.compile(result);
+	const html = template();
+	return html;
+}
 const productForm = async() => {
 	const response = await fetch("../templates/form.handlebars");
 	const result = await response.text();
@@ -58,6 +67,24 @@ const sendMessage = () => {
 	socket.emit("newMessage", newMessage);
 }
 
+//LOGIN EVENT
+const logSubmit = () => {
+	const form = document.getElementById("log-form");
+	const inputs = form.getElementsByTagName("input");
+	let logData = {
+		name: inputs[0].value,
+		password: inputs[1].value,
+	};
+	fetch("/login", {
+		method: "POST",
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(logData)
+	})
+	.then((res) => {
+		console.log(res);
+	})
+}
+
 
 //ROUTES
 if(window.location.pathname == "/stock") {
@@ -69,6 +96,11 @@ if(window.location.pathname == "/stock") {
 }
 if(window.location.pathname == "/form") {
 	productForm().then(res => {
+		content.innerHTML = res;
+	})
+}
+if(window.location.pathname == "/login") {
+	loginForm().then(res => {
 		content.innerHTML = res;
 	})
 }

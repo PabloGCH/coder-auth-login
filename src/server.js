@@ -1,5 +1,6 @@
 // IMPORTS
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const ProductDbManager = require("./managers/productsDbManager.js");
 const MessageDbManager = require("./managers/messageDbManager.js");
@@ -19,15 +20,41 @@ app.engine("handlebars", HANDLEBARS.engine())
 app.set("views", TEMPLATEFOLDER)
 app.set("view engine", "handlebars")
 //APP INIT CONF
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, 'public')));
 httpServer.listen(4000, ()=>{"server listening on port 4000"});
 
 
+
+
+app.get("/stock", (req, res) => {
+	if(!req.cookies.logToken){
+		res.redirect("/login")
+	}
+})
+app.get("/form", (req, res) => {
+	if(!req.cookies.logToken){
+		res.redirect("/login")
+	}
+})
+app.get("/chat", (req, res) => {
+	if(!req.cookies.logToken){
+		res.redirect("/login")
+	}
+})
+app.post("/login", (req, res) => {
+	console.log(req.body.name);
+	console.log(req.body.password);
+	res.cookie("logToken", "d54362jhaosdpub", {maxAge: 10000}).send("log cookie set")
+})
+
 app.get("/*", (req, res) => {
 	res.sendFile("public/client/index.html", {root: __dirname})
 })
+
+
 
 //WEBSOCKETS
 io.on("connection", (socket) => {
