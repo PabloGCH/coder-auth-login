@@ -36,10 +36,12 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, 'public')));
-httpServer.listen(4000, ()=>{"server listening on port 4000"});
+httpServer.listen(4000, ()=>{console.log("server listening on port 4000")});
 
 
-
+app.get("/", (req,res) => {
+	res.redirect("/login")
+})
 app.get("/stock", (req, res) => {
 	if(req.session.user == undefined){
 		res.redirect("/login")
