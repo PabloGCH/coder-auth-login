@@ -29,6 +29,13 @@ const loginForm = async() => {
 	const html = template();
 	return html;
 }
+const registerForm = async() => {
+	const response = await fetch("../templates/register.handlebars");
+	const result = await response.text();
+	const template = Handlebars.compile(result);
+	const html = template();
+	return html;
+}
 const productForm = async() => {
 	const response = await fetch("../templates/form.handlebars");
 	const result = await response.text();
@@ -68,12 +75,6 @@ const productFormSubmit = () => {
 				window.location.replace("login")
 			}
 		})
-
-	/*
-	setTimeout(() => {
-		window.location.replace("stock")
-	}, 500)
-	*/
 }
 
 const chatSection = async(data, user) => {
@@ -108,6 +109,24 @@ const sendMessage = () => {
 		})
 }
 
+//REGISTER EVENT
+const registerSubmit = () => {
+	const form = document.getElementById("reg-form");
+	const inputs = form.getElementsByTagName("input");
+	let logData = {
+		name: inputs[0].value,
+		password: inputs[1].value,
+	};
+	fetch("/register", {
+		method: "POST",
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(logData)
+	})
+		.then(async(res) => {
+			console.log(await res.json())
+			window.location.replace("stock")
+		})
+}
 //LOGIN EVENT
 const logSubmit = () => {
 	const form = document.getElementById("log-form");
@@ -143,6 +162,11 @@ if(window.location.pathname == "/form") {
 }
 if(window.location.pathname == "/login") {
 	loginForm().then(res => {
+		content.innerHTML = res;
+	})
+}
+if(window.location.pathname == "/register") {
+	registerForm().then(res => {
 		content.innerHTML = res;
 	})
 }

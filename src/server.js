@@ -75,6 +75,9 @@ app.get("/login", (req,res) => {
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
+app.get("/register", (req,res) => {
+	res.sendFile("public/client/index.html", {root: __dirname})
+})
 
 app.post("/login", (req, res) => {
 	const body = req.body;
