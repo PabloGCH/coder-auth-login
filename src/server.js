@@ -76,7 +76,7 @@ passport.use("signupStrategy", new passportLocal.Strategy(
 		passReqToCallback: true,
 	},
 	(req, username, password, done) => {
-		return UserModel.findOne({username: username}, (err, userFound) => {
+		UserModel.findOne({username: username}, (err, userFound) => {
 			if(err) return done(err);
 			if(userFound) {
 				Object.assign(req, {success: false,message: "user already exists"})
@@ -211,8 +211,11 @@ app.get("/userData", (req, res) => {
 })
 
 app.get("/logOff", (req, res) => {
-	req.session.destroy();
-	res.send({message: "session closed"})
+	req.logout(err => {
+		if(err) return res.send("failed to close session")
+		req.session.destroy();
+		res.redirect("/")
+	})
 })
 
 

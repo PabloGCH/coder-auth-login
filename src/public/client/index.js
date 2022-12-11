@@ -189,7 +189,7 @@ const logOff = () => {
 	fetch("/logOff", {
 		method: "GET",
 		headers: {'Content-Type': 'application/json'},
-	}).then(async(res) => {
-		console.log(res);
+	}).then(res => {
+		window.location.replace("/")
 	})
 } 
