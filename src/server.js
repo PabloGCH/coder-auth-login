@@ -1,13 +1,25 @@
 // IMPORTS
 const express = require("express");
+const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const ProductDbManager = require("./managers/productsDbManager.js");
 const MessageDbManager = require("./managers/messageDbManager.js");
+const UserModel = require("./schemas/user.js");
+const passport = require("passport");
+const passportLocal = require("passport-local");
 const {Server: IOServer} = require("socket.io");
 const {Server: HttpServer} = require("http");
 
 //GLOBAL VARIABLES
+mongoose.connect("mongodb+srv://pablo:coder@coder.bkt7yqu.mongodb.net/auth?retryWrites=true&w=majority").then(
+	() => {
+		console.log("connection successful")
+	},
+	err => {
+		console.log(err)
+	}
+)
 const app= express();
 const httpServer = new HttpServer(app);
 const io = new IOServer(httpServer)
@@ -22,10 +34,14 @@ const session = require("express-session");
 app.engine("handlebars", HANDLEBARS.engine())
 app.set("views", TEMPLATEFOLDER)
 app.set("view engine", "handlebars")
+
+
+
+
 //APP INIT CONF
 app.use(cookieParser());
 app.use(session({
-	store: MongoStore.create({mongoUrl: "mongodb+srv://pablo:coder@coder.bkt7yqu.mongodb.net/sessionsDb?retryWrites=true&w=majority"}),
+	store: MongoStore.create({mongoUrl: "mongodb+srv://pablo:coder@coder.bkt7yqu.mongodb.net/auth?retryWrites=true&w=majority"}),
 	secret: "dfvartg4wfqR3EFRQ3",
 	resave: false,
 	saveUninitialized: false,
@@ -33,6 +49,41 @@ app.use(session({
 		maxAge: 1000 * 60 * 10 // 1 segundo * 60 * 10 = 10 minutos
 	}
 }))
+//PASSPORT CONFIGURATION
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user,done)=>{
+	done(null,user.id);
+})
+passport.deserializeUser((id, done)=>{
+	UserModel.findById(id, (err, userFound) => {
+		if(err) return done(err);
+		return done(null, userFound);
+	})
+})
+
+//REGISTER
+passport.use("signupStrategy", new passportLocal.Strategy(
+	{
+		passReqToCallback: true,
+		usernameField: "email"
+	},
+	(req, username, password, done) => {
+		UserModel.findOne({username: username}, (err, userFound) => {
+			if(err) return done(err);
+			if(userFound) return done(null, userFound,{message: "user already exists"});
+			const newUser = {
+				username: username,
+				password: password
+			}
+			UserModel.create(newUser, (err, userCreated) => {
+				if(err) return done(err, null, {message: "failed to register user"});
+				return done(null, userCreated)
+			})
+		})
+	}
+));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -77,7 +128,14 @@ app.get("/login", (req,res) => {
 })
 app.get("/register", (req,res) => {
 	res.sendFile("public/client/index.html", {root: __dirname})
-})
+});
+
+app.post("/register", passport.authenticate("signupStrategy", {
+	failureRedirect: "/register",
+	failureMessage: true
+}), (req,res) => {
+	res.redirect("/stock")
+});
 
 app.post("/login", (req, res) => {
 	const body = req.body;

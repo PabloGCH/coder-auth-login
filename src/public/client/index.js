@@ -113,17 +113,18 @@ const sendMessage = () => {
 const registerSubmit = () => {
 	const form = document.getElementById("reg-form");
 	const inputs = form.getElementsByTagName("input");
-	let logData = {
-		name: inputs[0].value,
-		password: inputs[1].value,
+	let regData = {
+		email: inputs[0].value,
+		password: inputs[1].value
 	};
+	console.log(regData);
 	fetch("/register", {
 		method: "POST",
 		headers: {'Content-Type': 'application/json'},
-		body: JSON.stringify(logData)
+		body: JSON.stringify(regData)
 	})
 		.then(async(res) => {
-			console.log(await res.json())
+			console.log(res)
 			window.location.replace("stock")
 		})
 }
