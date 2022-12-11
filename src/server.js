@@ -63,11 +63,11 @@ passport.deserializeUser((id, done)=>{
 	})
 })
 
+
 //REGISTER
 passport.use("signupStrategy", new passportLocal.Strategy(
 	{
 		passReqToCallback: true,
-		usernameField: "email"
 	},
 	(req, username, password, done) => {
 		UserModel.findOne({username: username}, (err, userFound) => {
@@ -130,25 +130,40 @@ app.get("/register", (req,res) => {
 	res.sendFile("public/client/index.html", {root: __dirname})
 });
 
+
+
+
 app.post("/register", passport.authenticate("signupStrategy", {
 	failureRedirect: "/register",
 	failureMessage: true
 }), (req,res) => {
-	res.redirect("/stock")
+
 });
 
 app.post("/login", (req, res) => {
 	const body = req.body;
 	if(req.session.user) {
 		res.send({message:"already logged"})
-	} else if(body.name && body.password) {
-		req.session.user = {
-			name: body.name,
-			password: body.password
-		}
-		res.send({message: "Session initialized"})
+	} else if(body.username && body.password) {
+		UserModel.findOne({username: body.username}, (err, userFound) => {
+			if(err) {
+				res.send(err)
+			}
+			if(userFound) {
+				if(userFound.password == body.password) {
+					req.session.user = {
+						username: body.username,
+						password: body.password
+					}
+					res.send({success: true, message: "Session initialized"})
+				} else {
+					res.send({success: false, message: "Invalid password"})
+				}
+			}
+		})
+
 	} else {
-		res.send({message: "Invalid user inputs"})
+		res.send({success: false, message: "Invalid user inputs"})
 	}
 })
 

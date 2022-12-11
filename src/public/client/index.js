@@ -114,7 +114,7 @@ const registerSubmit = () => {
 	const form = document.getElementById("reg-form");
 	const inputs = form.getElementsByTagName("input");
 	let regData = {
-		email: inputs[0].value,
+		username: inputs[0].value,
 		password: inputs[1].value
 	};
 	console.log(regData);
@@ -125,7 +125,6 @@ const registerSubmit = () => {
 	})
 		.then(async(res) => {
 			console.log(res)
-			window.location.replace("stock")
 		})
 }
 //LOGIN EVENT
@@ -133,7 +132,7 @@ const logSubmit = () => {
 	const form = document.getElementById("log-form");
 	const inputs = form.getElementsByTagName("input");
 	let logData = {
-		name: inputs[0].value,
+		username: inputs[0].value,
 		password: inputs[1].value,
 	};
 	fetch("/login", {
@@ -142,8 +141,10 @@ const logSubmit = () => {
 		body: JSON.stringify(logData)
 	})
 		.then(async(res) => {
-			console.log(await res.json())
-			window.location.replace("stock")
+			let data = await res.json();
+			if(data.success){
+				window.location.replace("stock")
+			}
 		})
 }
 
@@ -187,7 +188,6 @@ const logOff = () => {
 		method: "GET",
 		headers: {'Content-Type': 'application/json'},
 	}).then(async(res) => {
-		console.log(await res.json());
-		window.location.replace("stock")
+		console.log(res);
 	})
 } 
