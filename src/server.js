@@ -139,7 +139,12 @@ app.get("/login", (req,res) => {
 app.get("/register", (req,res) => {
 	res.sendFile("public/client/index.html", {root: __dirname})
 });
-
+app.get("/logerror", (req,res) => {
+	res.sendFile("public/client/index.html", {root: __dirname})
+});
+app.get("/regerror", (req,res) => {
+	res.sendFile("public/client/index.html", {root: __dirname})
+});
 
 
 

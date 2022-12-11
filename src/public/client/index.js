@@ -29,6 +29,20 @@ const loginForm = async() => {
 	const html = template();
 	return html;
 }
+const logError = async() => {
+	const response = await fetch("../templates/logError.handlebars");
+	const result = await response.text();
+	const template = Handlebars.compile(result);
+	const html = template();
+	return html;
+}
+const regError = async() => {
+	const response = await fetch("../templates/regError.handlebars");
+	const result = await response.text();
+	const template = Handlebars.compile(result);
+	const html = template();
+	return html;
+}
 const registerForm = async() => {
 	const response = await fetch("../templates/register.handlebars");
 	const result = await response.text();
@@ -126,6 +140,8 @@ const registerSubmit = () => {
 			let data = await res.json();
 			if(data.success) {
 				window.location.replace("login")
+			} else {
+				window.location.replace("regerror")
 			}
 		})
 }
@@ -146,6 +162,8 @@ const logSubmit = () => {
 			let data = await res.json();
 			if(data.success){
 				window.location.replace("stock")
+			} else {
+				window.location.replace("logerror")
 			}
 		})
 }
@@ -166,6 +184,16 @@ if(window.location.pathname == "/form") {
 }
 if(window.location.pathname == "/login") {
 	loginForm().then(res => {
+		content.innerHTML = res;
+	})
+}
+if(window.location.pathname == "/regerror") {
+	regError().then(res => {
+		content.innerHTML = res;
+	})
+}
+if(window.location.pathname == "/logerror") {
+	logError().then(res => {
 		content.innerHTML = res;
 	})
 }
