@@ -117,14 +117,16 @@ const registerSubmit = () => {
 		username: inputs[0].value,
 		password: inputs[1].value
 	};
-	console.log(regData);
 	fetch("/register", {
 		method: "POST",
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(regData)
 	})
 		.then(async(res) => {
-			console.log(res)
+			let data = await res.json();
+			if(data.success) {
+				window.location.replace("login")
+			}
 		})
 }
 //LOGIN EVENT

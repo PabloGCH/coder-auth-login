@@ -8,6 +8,7 @@ const MessageDbManager = require("./managers/messageDbManager.js");
 const UserModel = require("./schemas/user.js");
 const passport = require("passport");
 const passportLocal = require("passport-local");
+const bcrypt = require("bcrypt");
 const {Server: IOServer} = require("socket.io");
 const {Server: HttpServer} = require("http");
 
@@ -34,6 +35,11 @@ const session = require("express-session");
 app.engine("handlebars", HANDLEBARS.engine())
 app.set("views", TEMPLATEFOLDER)
 app.set("view engine", "handlebars")
+const createHash = (password) => {
+	const hash = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+	return hash;
+}
+
 
 
 
@@ -70,15 +76,19 @@ passport.use("signupStrategy", new passportLocal.Strategy(
 		passReqToCallback: true,
 	},
 	(req, username, password, done) => {
-		UserModel.findOne({username: username}, (err, userFound) => {
+		return UserModel.findOne({username: username}, (err, userFound) => {
 			if(err) return done(err);
-			if(userFound) return done(null, userFound,{message: "user already exists"});
+			if(userFound) {
+				Object.assign(req, {success: false,message: "user already exists"})
+				return done(null, userFound);
+			}
 			const newUser = {
 				username: username,
-				password: password
+				password: createHash(password)
 			}
 			UserModel.create(newUser, (err, userCreated) => {
 				if(err) return done(err, null, {message: "failed to register user"});
+				Object.assign(req, {success: true,message: "User created"})
 				return done(null, userCreated)
 			})
 		})
@@ -97,7 +107,7 @@ app.get("/stock", (req, res) => {
 	if(req.session.user == undefined){
 		res.redirect("/login")
 	} else {
-		res.cookie("username", req.session.user.name)
+		res.cookie("username", req.session.user.username)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
@@ -106,7 +116,7 @@ app.get("/form", (req, res) => {
 		res.redirect("/login")
 	} else {
 
-		res.cookie("username", req.session.user.name)
+		res.cookie("username", req.session.user.username)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
@@ -115,7 +125,7 @@ app.get("/chat", (req, res) => {
 		res.redirect("/login")
 	} else {
 
-		res.cookie("username", req.session.user.name)
+		res.cookie("username", req.session.user.username)
 		res.sendFile("public/client/index.html", {root: __dirname})
 	}
 })
@@ -137,7 +147,7 @@ app.post("/register", passport.authenticate("signupStrategy", {
 	failureRedirect: "/register",
 	failureMessage: true
 }), (req,res) => {
-
+	res.send({success: req.success || false, message: req.message||""})
 });
 
 app.post("/login", (req, res) => {
@@ -150,7 +160,7 @@ app.post("/login", (req, res) => {
 				res.send(err)
 			}
 			if(userFound) {
-				if(userFound.password == body.password) {
+				if(bcrypt.compareSync(body.password, userFound.password)) {
 					req.session.user = {
 						username: body.username,
 						password: body.password
